@@ -1,6 +1,6 @@
 import "../fonts.css"
 import type { ReactNode } from "react"
-
+import { Roomsearchjoin } from "../components/roomsearchjoin"
 interface props  {
 children?:ReactNode
 }
@@ -26,6 +26,7 @@ export function Landingpage({children}:props)
             transition-all duration-100 border-4 border-black">login with gmail</button>
 
             </div>
+            <Roomsearchjoin></Roomsearchjoin>
           {children}
         </div></>)
       
