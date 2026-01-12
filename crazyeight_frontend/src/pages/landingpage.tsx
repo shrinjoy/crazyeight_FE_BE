@@ -1,5 +1,5 @@
 import "../fonts.css"
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { Roomsearchjoin } from "../components/roomsearchjoin"
 interface props  {
 children?:ReactNode
@@ -7,6 +7,8 @@ children?:ReactNode
 
 export function Landingpage({children}:props)
 {
+    const [roomsearchvisible,setRoomsearchvisiblity] = useState(false)
+
     return(
         
     <>
@@ -18,7 +20,7 @@ export function Landingpage({children}:props)
             text-2xl xl:text-4xl font-bol px-10 py-5 rounded-3xl            
             shadow-[0_4px_0_0_#000] hover:shadow-[0_15px_0_0_#000] hover:-translate-y-1  
             active:translate-y-[2px] active:shadow-[0_4px_0_0_#000] 
-            transition-all duration-100 border-4 border-black">play as guest</button>
+            transition-all duration-100 border-4 border-black" onClick={()=>{setRoomsearchvisiblity(true)}}>play as guest</button>
             <button style={{ fontFamily: 'cartoonfont' }} className="bg-white  text-black  
             text-2xl xl:text-4xl font-bol  px-10 py-5  rounded-3xl            
             shadow-[0_4px_0_0_#000] hover:shadow-[0_15px_0_0_#000] hover:-translate-y-1  
@@ -26,7 +28,7 @@ export function Landingpage({children}:props)
             transition-all duration-100 border-4 border-black">login with gmail</button>
 
             </div>
-            <Roomsearchjoin></Roomsearchjoin>
+            <Roomsearchjoin visible={roomsearchvisible}></Roomsearchjoin>
           {children}
         </div></>)
       
