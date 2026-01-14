@@ -6,10 +6,15 @@ handels everything releated to
 
 import { getredis } from "../shared/redis.js";
 import { getsockioserver } from "../shared/socket.js";
-export function roomservice() {
+export async function roomservice() {
     const io = getsockioserver();
     const redis = getredis();
-    io.on("connection", (socket) => {
+    const current = Number(await redis.get("active:lobby:players")) || 0;
+    await redis.set("active:lobby:players", 0);
+
+    io.on("connection", async (socket) => {
+        const count = await redis.incr("active:lobby:players");
+        io.emit("playersinlobby", count);
         socket.on("create_room", async ({ roomid }, ack) => {
             if (!roomid || typeof roomid !== "string") {
                 ack({ ok: false, error: "bad room name" });
@@ -67,5 +72,57 @@ export function roomservice() {
             }
 
         })
+        socket.on("get_total_player_count",
+            async (_: unknown, ack?: (res: {
+                ok: boolean;
+                totalplayers?: number;
+                error?: string;
+            }) => void
+            ) => {
+                try {
+                    const roomlist: string[] = await redis.smembers("rooms");
+
+                    if (!roomlist || roomlist.length === 0) {
+                        ack?.({ ok: true, totalplayers: 0 });
+                        return;
+                    }
+
+                    const pipeline = redis.pipeline();
+                    for (const roomid of roomlist) {
+                        pipeline.scard(`room:${roomid}:players`);
+                    }
+
+                    const results = await pipeline.exec();
+
+                    if (!results) {
+                        ack?.({ ok: false, error: "redis pipeline failed" });
+                        return;
+                    }
+                    let totalplayers = 0;
+                    for (const [err, count] of results) {
+                        if (err) continue;
+                        if (typeof count === "number") {
+                            totalplayers += count;
+                        }
+                    }
+
+                    ack?.({ ok: true, totalplayers });
+                } catch (err) {
+                    ack?.({ ok: false, error: "failed to fetch total player count" });
+                }
+            }
+        );
+        socket.on("get_playersinlobby", async (_, ack) => {
+            const count = Number(await redis.get("active:lobby:players")) || 0;
+            console.log(count);
+
+            ack?.({ ok: true, playercount: count });
+        });
+        socket.on("disconnect", async () => {
+
+            const count = await redis.decr("active:lobby:players");
+            io.emit("playersinlobby", Math.max(count, 0));
+        })
     })
+
 }

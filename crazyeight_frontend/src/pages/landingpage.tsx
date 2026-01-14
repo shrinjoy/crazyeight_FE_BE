@@ -3,16 +3,17 @@ import { useState, type ReactNode } from "react"
 import { Roomsearchjoin } from "../components/roomsearchjoin"
 interface props  {
 children?:ReactNode
+playercount:number|0
 }
 
-export function Landingpage({children}:props)
+export function Landingpage({children,playercount}:props)
 {
     const [roomsearchvisible,setRoomsearchvisiblity] = useState(false)
-
+   
     return(
         
     <>
-        <label style={{ fontFamily: 'cartoonfont' }} className=" sm:text-sm md:text-sm lg:text-sm xl:text-xl  font-bold tracking-tight text-center">currently active players:0</label>
+        <label style={{ fontFamily: 'cartoonfont' }} className=" sm:text-sm md:text-sm lg:text-sm xl:text-xl  font-bold tracking-tight text-center">currently active players:{playercount}</label>
         <div className="w-dvw h-dvh gap-20 flex flex-col  items-center pt-16 md:pt-24 lg:pt-32">
         <label style={{ fontFamily: 'cartoonfont' }} className="text-5xl  sm:text-6xl  md:text-7xl   lg:text-8xl   xl:text-9xl   font-bold tracking-tight text-center">Crazy Eight</label>
             <div className="w-dvw h-dvh flex flex-col  items-center  gap-10">

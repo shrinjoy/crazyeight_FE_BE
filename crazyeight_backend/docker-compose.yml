@@ -2,7 +2,7 @@
 version: '3.8'
 services:
   redis:
-    image: redis:7.2-alpine
+    image: redis:alpine
     container_name: redis-secured
     ports:
       - "6379:6379"
