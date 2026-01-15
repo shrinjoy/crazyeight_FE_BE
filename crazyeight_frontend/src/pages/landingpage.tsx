@@ -1,6 +1,7 @@
 import "../fonts.css"
 import { useState, type ReactNode } from "react"
 import { Roomsearchjoin } from "../components/roomsearchjoin"
+import {useconnected } from "../App"
 interface props  {
 children?:ReactNode
 playercount:number|0
@@ -9,7 +10,11 @@ playercount:number|0
 export function Landingpage({children,playercount}:props)
 {
     const [roomsearchvisible,setRoomsearchvisiblity] = useState(false)
-   
+    const connected = useconnected();
+
+    
+
+
     return(
         
     <>
@@ -21,9 +26,7 @@ export function Landingpage({children,playercount}:props)
             text-2xl xl:text-4xl font-bol px-10 py-5 rounded-3xl            
             shadow-[0_4px_0_0_#000] hover:shadow-[0_15px_0_0_#000] hover:-translate-y-1  
             active:translate-y-[2px] active:shadow-[0_4px_0_0_#000] 
-            transition-all duration-100 border-4 border-black" onClick={()=>{setRoomsearchvisiblity(true)}}>play</button>
-     
-
+            transition-all duration-100 border-4 border-black"  onClick={()=>{setRoomsearchvisiblity(true)}}>play</button>
             </div>
             <Roomsearchjoin visible={roomsearchvisible}></Roomsearchjoin>
           {children}

@@ -20,11 +20,31 @@ export async function roomservice() {
                 ack({ ok: false, error: "bad room name" });
                 return;
             }
+
+          
+
+
             const created = await redis.sadd("rooms", roomid);
             if (created === 0) {
-                ack({ ok: false, error: "room with provided room name already exists" });
+                const playercount = await redis.scard(`room:${roomid}:players`);
+                const roommeta = await redis.hgetall(`room:${roomid}`);
+                if (!roommeta || Object.keys(roommeta).length === 0) {
+                    ack({ ok: false, error: "room data corrupted" });
+                    return;
+                }
+                const maxPlayers = Number(roommeta.maxPlayers);
+                if (playercount >= maxPlayers) {
+                    ack({ ok: false, error: "room is full" });
+                    return;
+                }
+                await redis.multi()
+                .sadd(`room:${roomid}:players`, socket.id)
+                .set(`socket:${socket.id}:room`, roomid)
+                .exec();
+                socket.join(roomid);
+                ack({ ok: true, "roomid":roomid });
                 return;
-            }
+            }   
             const initialState = {
                 phase: "waiting",
                 turn: null,

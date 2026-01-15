@@ -1,13 +1,40 @@
+import { useState } from "react"
 import "../fonts.css"
-
+import { socket } from "../shared/socket"
 interface props
 {
   visible?:Boolean
 }
 
 
+type joinroomack ={
+  ok: boolean, 
+  roomid?:string,
+  error?:string
+}
+
+
+async function joincreateroom(roomid:string)
+{
+ await socket.emit("create_room", { roomid:`${roomid}`} ,(res:joinroomack)=>{
+  if(res.ok === true)
+  {
+    //chance scene to game scene
+    alert(res.roomid);
+  }
+  else
+  {
+    alert(res.error);
+  }
+ });
+}
 
 export function Roomsearchjoin({visible}:props) {
+
+  
+  const [roomnametext,setRoomnametext] = useState<string>("")
+
+
     return (<div className={`fixed inset-0 flex items-center justify-center ${visible? `scale-100 opacity-100 translate-y-0`:`scale-0 opacity-0 translate-y-8`}`}><div className="w-[90%] max-w-2xl          
           min-h-[300px] h-7/12 
           bg-white rounded-2xl 
@@ -29,6 +56,7 @@ export function Roomsearchjoin({visible}:props) {
         text-black
         placeholder:text-gray-500
       "
+      onChange={(e)=>{setRoomnametext(e.target.value)}}
       placeholder="Room code..."
     />
     <button
@@ -41,6 +69,7 @@ export function Roomsearchjoin({visible}:props) {
         transition-colors
         min-w-[88px]
       "
+      onClick={async ()=>{await joincreateroom(roomnametext)}}
     >
       Create
     </button>
