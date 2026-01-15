@@ -1,22 +1,29 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import "../fonts.css"
 import { socket } from "../shared/socket"
+import { useconnected } from "../App"
 interface props
 {
   visible?:Boolean
 }
-
-
-type joinroomack ={
+type joinroom_ack ={
   ok: boolean, 
   roomid?:string,
   error?:string
 }
-
-
-async function joincreateroom(roomid:string)
+type roomdata = {
+   name: string,
+  playercount: number|0
+}
+type roomack = {
+  ok:boolean,
+  rooms?:roomdata[],
+  error?:string
+}
+function joincreateroom(roomid:string)
 {
- await socket.emit("create_room", { roomid:`${roomid}`} ,(res:joinroomack)=>{
+  socket.emit("create_room", { roomid:`${roomid}`} ,(res:joinroom_ack)=>{
+    console.log(res);
   if(res.ok === true)
   {
     //chance scene to game scene
@@ -28,10 +35,40 @@ async function joincreateroom(roomid:string)
   }
  });
 }
-
 export function Roomsearchjoin({visible}:props) {
+  const connected = useconnected();
+  const [roomlist,setRoomlist] = useState<roomdata[]>([]);
+  function getrooms() {
 
-  
+    socket.emit("get_rooms", null, (res: roomack) => {
+      console.log("room list");
+      if (res.ok === true) {
+        if (res.rooms != null) {
+          setRoomlist(res.rooms);
+        }
+      }
+      else {
+        console.log(res.error);
+
+      }
+
+    })
+  }
+  useEffect(()=>{
+    if(connected)
+    {
+      getrooms();
+    }
+    const onroomadded = () => getrooms();
+    socket.on("room_added",onroomadded)
+    return () => {
+    socket.off("room_added",onroomadded);
+  };
+  },[connected])
+
+
+
+
   const [roomnametext,setRoomnametext] = useState<string>("")
 
 
@@ -69,11 +106,31 @@ export function Roomsearchjoin({visible}:props) {
         transition-colors
         min-w-[88px]
       "
-      onClick={async ()=>{await joincreateroom(roomnametext)}}
+      onClick={async ()=>{joincreateroom(roomnametext)}}
     >
-      Create
+      Create/Join
     </button>
+    
   </div>
+  <ul className="
+    max-h-64
+    overflow-y-auto
+    border-t border-black
+    mt-4
+  ">
+  {roomlist.map((room) => (
+    <li className="
+        flex-1 min-w-0
+        px-4 py-3.5
+        text-base
+        outline-none
+        text-black
+        placeholder:text-gray-500
+      " key={room.name}>
+      {room.name} — {room.playercount}
+    </li>
+  ))}
+</ul>
 </div>
     </div></div>)
 

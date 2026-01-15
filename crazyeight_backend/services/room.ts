@@ -43,6 +43,7 @@ export async function roomservice() {
                 .exec();
                 socket.join(roomid);
                 ack({ ok: true, "roomid":roomid });
+                socket.broadcast.emit("room_added", { playercount: playercount, name: roomid });
                 return;
             }   
             const initialState = {
