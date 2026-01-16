@@ -1,0 +1,26 @@
+.carddeck_pos
+{
+position: fixed;
+bottom: 0%;
+}
+.carddeck_oppo
+{
+bottom: 30%;
+}
+
+
+.discardpile
+{
+  background-color: rgb(196, 43, 188);
+
+}
+.drawpile
+{
+  width: 100px;
+  height: 160px;
+  background-color: rgb(152, 184, 9);
+  position: absolute;
+  left: 20px;
+  bottom: 5%;
+ 
+}

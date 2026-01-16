@@ -1,0 +1,98 @@
+.deck
+{
+    width: 100%;
+  
+    left: 0;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: transparent;
+    z-index: 1;
+}
+.deck_hidden
+{
+    transform: translateY(93%);
+    transition: transform 0.3s ease-out;
+}
+.deck_show
+{
+    transform: translateY(80%);
+    transition: transform 0.3s ease-out;
+}
+.deck_handle
+{
+    background-color: black;
+    width: 100%;
+    text-align: center;
+}
+.carddeck_list
+{
+    display: flex;
+    flex-direction: row;
+    gap: 10;
+
+}
+.carddeck_list > .card
+{
+    --offset:0;
+    width: 90%;
+    height: 100%;
+    max-width: 100px;
+    max-height:200px ;
+    background-color: rgb(0, 223, 148);
+    position:absolute;
+    transform-origin: bottom center;
+    transition: transform 0.3s ease;
+    z-index: 10;
+
+}
+
+
+.carddeck_list > .card_spawn{
+    animation: cardspawnanimation 0.5s ease-in-out ;
+}
+
+@keyframes cardspawnanimation
+{
+    0%{
+        transform: scale(0);
+    }
+    50%{
+        transform: scale(2);
+    }
+    100%
+    {
+        transform: scale(1);
+    }
+}
+
+
+.carddeck_list > .card_hidden{
+    transform:
+     translateX(calc(-50% + var(--offset)*10px))
+}
+
+.carddeck_list > .card_show{
+    transform:
+    translateX(calc(-50% + var(--offset)*10px))
+    rotate(calc(var(--offset)*5deg));
+}
+
+.carddeck_list > .card_show:hover
+{
+    transform:
+    translateX(calc(-50% + var(--offset)*20px))
+    translateY(-80px)
+    rotate(calc(var(--offset) * 0deg));
+    z-index: 11;
+}
+
+
+.deck.carddeck_oppo.deck_show {
+  transform: rotateX(180deg) translateY(80%);
+}
+
+.deck.carddeck_oppo.deck_hidden {
+  transform: rotateX(180deg) translateY(93%);
+}
