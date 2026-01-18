@@ -47,7 +47,6 @@ export async function roomservice() {
                 return;
             }
             const initialState = {
-                phase: "waiting",
                 turn: null,
                 players: [],
                 deck: [],

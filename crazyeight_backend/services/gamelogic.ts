@@ -1,6 +1,6 @@
 import { getredis } from "../shared/redis.js";
 import { getsockioserver } from "../shared/socket.js";
-import { type roomstate, type phases, decklist } from "../../shared/commontypes.d.js"
+import { type roomstate, type phases, decklist } from "../shared/commontypes.js"
 import { ok } from "node:assert";
 import { stat } from "node:fs";
 import type { Socket } from "socket.io";
@@ -52,20 +52,6 @@ socket:<id>:room          → reverse lookup (string)
 
 
 
-const io = getsockioserver();
-const redis = getredis();
-async function getgamephase(roomid: string): Promise<phases | null> {
-    const state = (await redis.get(`room:${roomid}:phase`)) as phases | null;
-    return state;
-}
-async function setgamephase(roomid: string, phase: phases) {
-    return await redis.set(`room:${roomid}:phase`,phase);
-}
-
-
-async function getsocketroomname(socketid: string): Promise<string | null> {
-    return await redis.get(`socket:${socketid}:room`);
-}
 
 
 
@@ -73,18 +59,32 @@ async function getsocketroomname(socketid: string): Promise<string | null> {
 
 
 
-export async function roomservice() {
 
+export function gamelogic() {
+    const io = getsockioserver();
+    const redis = getredis();
+    async function getgamephase(roomid: string): Promise<phases | null> {
+        const state = (await redis.hget(`room:${roomid}`, "phase")) as phases | null;
+        return state;
+    }
+    async function setgamephase(roomid: string, phase: phases) {
+        return await redis.hset(`room:${roomid}`, "phase", phase);
+    }
+
+
+    async function getsocketroomname(socketid: string): Promise<string | null> {
+        return await redis.get(`socket:${socketid}:room`);
+    }
     io.on("connection", async (socket) => {
 
         socket.on("get_game_phase", async ({ roomid }, ack) => {
             const state = await getgamephase(roomid);
             ack({ ok: true, phase: state })
         })
-        socket.on("player_connected", async (_, ack) => {
+        socket.on("player_joined_room", async () => {
             const roomname: string | null = await getsocketroomname(socket.id);
             if (roomname === null) {
-                ack({ ok: false, error: "room dont exist" })
+                console.log({ ok: false, error: "room dont exist" })
                 return
             }
 
@@ -92,7 +92,7 @@ export async function roomservice() {
 
             const state: phases | null = await getgamephase(roomname);
             if (state === null) {
-                ack({ ok: false, error: "phase is not know you are cooked bro :c" })
+                console.log({ ok: false, error: "phase is not know you are cooked bro :c" })
                 return;
             }
             else {
@@ -100,61 +100,61 @@ export async function roomservice() {
                 if (state === "waiting") {
                     const playercount: number = await redis.scard(`room:${roomname}:players`);
                     //update game state to playing
-                    if(await getgamephase(roomname) === "playing")
-                    {
+                    if (await getgamephase(roomname) === "playing") {
                         return
                     }
                     if (playercount === 2) {
                         //only one server should get hands on the setting up system or we gona have bad time 
                         //so we gona devise a lock mechanism 
-                        const lock = await redis.set(`room:${roomname}:deck:started`,"1","NX");
-                        if(!lock)
-                        {
+                        const lock = await redis.set(`room:${roomname}:deck:started`, "1", "NX");
+                        if (!lock) {
                             return;
                         }
 
 
-                      await  setgamephase(roomname, "playing");
+                        await setgamephase(roomname, "playing");
                     }
-                    
+
                     //distribute cards and setup deck
                     //not shuffeling right now will later in future
                     const deck: string[] = [...decklist];
                     const hands: Record<string, string[]> = {};
-                    let players:string[] =  await redis.smembers(`room:${roomname}:players`);
+                    let players: string[] = await redis.smembers(`room:${roomname}:players`);
                     for (const player of players) {
                         hands[player] = [];
+                        console.log("creating hand");
                     }
                     for (const player in hands) {
-                        for(let i =0;i<7;i++)
-                        {
-                            const cardname = deck.splice(Math.floor(Math.random()*deck.length),1);
-                            
+                        for (let i = 0; i < 7; i++) {
+                            const cardname = deck.splice(Math.floor(Math.random() * deck.length), 1);
+                            console.log("removing elements from Deck");
+
                             hands[player]?.push(...cardname);
+                            console.log("adding cards to hands");
 
                         }
 
                     }
-                    const pipeline = redis.pipeline();
-                    pipeline.del(`room:${roomname}:deck`);
-                    pipeline.rpush(`room:${roomname}:deck`,...deck);
-                 
-                    for (const player of players) {
-                        pipeline.del(`room:${roomname}:hand:${player}`);
-                        pipeline.rpush(`room:${roomname}:hand:${player}`, ...hands[player]!);
-                    }
-                    await pipeline.exec();
-                    
-                    const gamestate = await redis.get(`room:${roomname}:state`);
+                    const gamestate = {
+                        phase: "playing",
+                        turn: players[0],
+                        players: players,
+                        deck: deck,
+                        discard: [],
+                        hands: hands
+                    };
+                    console.log("executing redis update for state sync");
+                    await redis.set(`room:${roomname}:state`, JSON.stringify(gamestate));
 
-                    io.to(roomname).emit("game_start",gamestate);
+                    const res = await redis.get(`room:${roomname}:state`);
+                    io.to(roomname).emit("game_start", res);
                 }
                 if (state === "playing") {
 
                     //resume player logic goes here
                 }
                 if (state === "done") {
-                    ack({ ok: false, error: "game is over and room is closing" })
+
                     socket.leave(roomname);
                 }
             }
