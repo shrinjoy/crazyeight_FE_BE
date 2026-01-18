@@ -21,7 +21,7 @@ export async function roomservice() {
                 return;
             }
 
-          
+
 
 
             const created = await redis.sadd("rooms", roomid);
@@ -38,14 +38,14 @@ export async function roomservice() {
                     return;
                 }
                 await redis.multi()
-                .sadd(`room:${roomid}:players`, socket.id)
-                .set(`socket:${socket.id}:room`, roomid)
-                .exec();
+                    .sadd(`room:${roomid}:players`, socket.id)
+                    .set(`socket:${socket.id}:room`, roomid)
+                    .exec();
                 socket.join(roomid);
-                ack({ ok: true, "roomid":roomid });
+                ack({ ok: true, "roomid": roomid });
                 socket.broadcast.emit("room_added", { playercount: playercount, name: roomid });
                 return;
-            }   
+            }
             const initialState = {
                 phase: "waiting",
                 turn: null,
@@ -139,11 +139,32 @@ export async function roomservice() {
 
             ack?.({ ok: true, playercount: count });
         });
+
+        socket.on("disconnecting", async (reason) => {
+
+            const roomname: string | null = await redis.get(`socket:${socket.id}:room`);
+            console.log(`trying to remove  player from room ${roomname}`);
+            if (roomname !== null) {
+                //we know room exists
+                //we will update the player set now 
+
+                await redis.srem(`room:${roomname}:players`, socket.id);
+                console.log(`removed player from room ${roomname}`);
+
+            }
+
+
+        }
+        )
+
         socket.on("disconnect", async () => {
 
             const count = await redis.decr("active:lobby:players");
             io.emit("playersinlobby", Math.max(count, 0));
+            console.log("someone left lobby");
+
         })
+
     })
 
 }

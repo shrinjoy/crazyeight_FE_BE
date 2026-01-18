@@ -65,6 +65,8 @@ export function Roomsearchjoin({ visible }: props) {
     }
     const onroomadded = () => getrooms();
     socket.on("room_added", onroomadded)
+    socket.on("playersinlobby", onroomadded)
+
     return () => {
       socket.off("room_added", onroomadded);
     };

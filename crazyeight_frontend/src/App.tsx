@@ -12,7 +12,7 @@ export const useInRoomStatus = () => useContext(roomStatus);
 function App() {
   const [lobbyCount, setLobbycount] = useState(0);
   const [connected, setConnected] = useState(false);
-  const [inroom, setRoomstatus] = useState(true);
+  const [inroom, setRoomstatus] = useState(false);
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
