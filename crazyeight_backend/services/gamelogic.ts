@@ -99,10 +99,8 @@ export function gamelogic() {
                 console.log(state);
                 if (state === "waiting") {
                     const playercount: number = await redis.scard(`room:${roomname}:players`);
-                    //update game state to playing
-                    if (await getgamephase(roomname) === "playing") {
-                        return
-                    }
+                  
+                   
                     if (playercount === 2) {
                         //only one server should get hands on the setting up system or we gona have bad time 
                         //so we gona devise a lock mechanism 
@@ -114,9 +112,10 @@ export function gamelogic() {
 
                         await setgamephase(roomname, "playing");
                     }
-
-                    //distribute cards and setup deck
-                    //not shuffeling right now will later in future
+                    else
+                    {
+                        return;
+                    }
                     const deck: string[] = [...decklist];
                     const hands: Record<string, string[]> = {};
                     let players: string[] = await redis.smembers(`room:${roomname}:players`);
@@ -147,7 +146,10 @@ export function gamelogic() {
                     await redis.set(`room:${roomname}:state`, JSON.stringify(gamestate));
 
                     const res = await redis.get(`room:${roomname}:state`);
-                    io.to(roomname).emit("game_start", res);
+                      if (playercount === 2) {
+                        console.log("game start");
+                        io.to(roomname).emit("game_start", res);
+                      }
                 }
                 if (state === "playing") {
 
