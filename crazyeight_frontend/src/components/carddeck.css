@@ -79,7 +79,7 @@
     rotate(calc(var(--offset)*5deg));
 }
 
-.carddeck_list > .card_show:hover
+.carddeck_list > .card_mdown
 {
     transform:
     translateX(calc(-50% + var(--offset)*20px))

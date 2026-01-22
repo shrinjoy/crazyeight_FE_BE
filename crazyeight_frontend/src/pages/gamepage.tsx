@@ -1,7 +1,7 @@
 
 import { Card } from '../components/card'
 import { Carddeck } from '../components/carddeck'
-import { useEffect, useState, type JSX } from 'react'
+import { useEffect, useRef, useState, type JSX } from 'react'
 import "./gamepage.css"
 import "../shared/socket"
 import { socket } from '../shared/socket'
@@ -28,6 +28,8 @@ export function Gamepage() {
     const connected = useconnected;
     const { setRoomstatus } = useInRoomStatus();
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
+
+    const isinitialsetupdone=useRef(false);
     // const[gamestart,setGamestart] = useState<boolean>(false);
     useEffect(() => {
 
@@ -35,13 +37,15 @@ export function Gamepage() {
             setRoomstatus(false)
         }
         socket.emit("player_joined_room");
-
+        const username = localStorage.getItem("username");
         const initgame = (data: string) => {
+            if(isinitialsetupdone.current===false){
             const statedata = JSON.parse(data);
+            console.log(data);
             console.log("game start");
             for (const soc_id in statedata["hands"]) {
-                if (soc_id === socket.id) {
-                    for (const cardname of statedata["hands"][`${socket.id}`]) {
+                if (soc_id === username) {
+                    for (const cardname of statedata["hands"][`${username}`]) {
                         setCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
                     }
                 }
@@ -52,7 +56,7 @@ export function Gamepage() {
                 }
 
             }
-            if (statedata["turn"] === socket.id) {
+            if (statedata["turn"] === username) {
                 setDeckvisible(true);
             }
             else
@@ -61,6 +65,12 @@ export function Gamepage() {
 
             }
         }
+
+            isinitialsetupdone.current = true;
+        }
+
+
+        
         socket.on("game_start", initgame)
         return () => {
             socket.off("game_start", initgame);
@@ -69,7 +79,7 @@ export function Gamepage() {
 
 
     function drawfrompile() {
-        // setCardList(prev => [...prev, <Card></Card>])
+         setCardList(prev => [...prev, <Card></Card>])
     }
     return (
         <>

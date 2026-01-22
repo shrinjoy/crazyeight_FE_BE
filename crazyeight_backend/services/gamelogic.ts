@@ -118,7 +118,7 @@ export function gamelogic() {
                     }
                     const deck: string[] = [...decklist];
                     const hands: Record<string, string[]> = {};
-                    let players: string[] = await redis.smembers(`room:${roomname}:players`);
+                    let players: string[] = await redis.smembers(`room:${roomname}:usernames`);
                     for (const player of players) {
                         hands[player] = [];
                         console.log("creating hand");
@@ -153,7 +153,10 @@ export function gamelogic() {
                 }
                 if (state === "playing") {
 
-                    //resume player logic goes here
+                    const res = await redis.get(`room:${roomname}:state`);
+                    console.log("resuming game");
+                   socket.emit("game_start", res);
+                      
                 }
                 if (state === "done") {
 

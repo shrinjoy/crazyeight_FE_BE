@@ -14,6 +14,16 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [inroom, setRoomstatus] = useState(false);
   useEffect(() => {
+    if(localStorage.getItem("username")===null){
+        const timestamp = Date.now().toString(36); 
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        localStorage.setItem("username",timestamp+randomSuffix)
+    }
+    else
+    {
+      console.log(localStorage.getItem("username"));
+    }
+    
     if (!socket.connected) {
       socket.connect();
     }
@@ -24,6 +34,7 @@ function App() {
    
     socket.on("disconnect", () => {
       setConnected(false);
+      setRoomstatus(false);
     });
 
     return () => {
@@ -31,7 +42,7 @@ function App() {
       socket.off("disconnect");
       socket.disconnect();
     };
-  }, []);
+  }, [connected]);
 
   return (
     <>
@@ -39,7 +50,7 @@ function App() {
       <connectedcontext.Provider value={connected}>
         <Background>
           <roomStatus.Provider value={{inroom,setRoomstatus}}>
-            {inroom?<Gamepage/>:<Landingpage playercount={lobbyCount}></Landingpage> }
+            {inroom?<Gamepage/>:<Landingpage playercount={connected?lobbyCount:0}></Landingpage> }
           </roomStatus.Provider>
         </Background>
       </connectedcontext.Provider>

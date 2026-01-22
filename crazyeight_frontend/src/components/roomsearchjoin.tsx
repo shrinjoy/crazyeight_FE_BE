@@ -11,7 +11,8 @@ interface props {
 type joinroom_ack = {
   ok: boolean,
   roomid?: string,
-  error?: string
+  error?: string,
+  message?:string
 }
 type roomdata = {
   name: string,
@@ -29,7 +30,7 @@ export function Roomsearchjoin({ visible }: props) {
   const { setRoomstatus } = useInRoomStatus();
 
   function joincreateroom(roomid: string) {
-    socket.emit("create_room", { roomid: `${roomid}` }, (res: joinroom_ack) => {
+    socket.emit("create_room", { roomid: `${roomid}`,username:localStorage.getItem("username") }, (res: joinroom_ack) => {
       console.log(res);
       if (res.ok === true) {
         //chance scene to game scene
@@ -69,6 +70,7 @@ export function Roomsearchjoin({ visible }: props) {
 
     return () => {
       socket.off("room_added", onroomadded);
+      socket.off("playersinlobby", onroomadded);
     };
   }, [connected])
 
