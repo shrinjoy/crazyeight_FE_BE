@@ -69,7 +69,7 @@ export function Gamepage() {
             isinitialsetupdone.current = true;
         }
 
-        
+
         
         socket.on("game_start", initgame)
         return () => {
@@ -84,11 +84,18 @@ export function Gamepage() {
     return (
         <>
 
-            <div className='flex flex-col'>
+            <div className='flex flex-col items-center justify-center min-h-screen '>
                 <Card onclick={drawfrompile} className='drawpile'></Card>
                 <Carddeck clickable={deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
                     {cardList.map(e => e)}
                 </Carddeck>
+                <Card onclick={()=>{}} className='discardpile 
+                w-[150px] h-[300px]  
+                
+                md:w-[150px] h-[300px]  
+                lg:w-[150px] h-[300px] 
+                
+                 bg-green-400 '></Card>
 
                 <Carddeck clickable={false} deckisopen={!deckvisible} className={`carddeck_pos carddeck_oppo top-10`}>
                     {cardListOpponent.map(e => e)}
