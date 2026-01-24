@@ -30,7 +30,7 @@ export function Gamepage() {
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
 
     const isinitialsetupdone=useRef(false);
-  
+    const [discardcardid,setdiscardcardid] = useState<string>("");
     useEffect(() => {
 
         if (!connected) {
@@ -43,6 +43,7 @@ export function Gamepage() {
             const statedata = JSON.parse(data);
             console.log(data);
             console.log("game start");
+
             for (const soc_id in statedata["hands"]) {
                 if (soc_id === username) {
                     for (const cardname of statedata["hands"][`${username}`]) {
@@ -72,7 +73,8 @@ export function Gamepage() {
 
         socket.on("state_update",(data)=>{
                const statedata = JSON.parse(data);
-
+               const discardedcards:string[] = [...statedata["discard"]]
+                setdiscardcardid(discardedcards[discardedcards.length-1]);
              setCardList([]);
              setoppoCardList([]);
 
@@ -98,6 +100,7 @@ export function Gamepage() {
                 setDeckvisible(false);
 
             }
+
              }
             console.log(data);
         })
@@ -121,7 +124,7 @@ export function Gamepage() {
                 <Carddeck clickable={deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
                     {cardList.map(e => e)}
                 </Carddeck>
-                <Card onclick={()=>{}} className='discardpile 
+                <Card id={discardcardid} onclick={()=>{}} className='discardpile 
                 w-[150px] h-[300px]  
                 
                 md:w-[150px] h-[300px]  

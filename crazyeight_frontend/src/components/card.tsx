@@ -11,5 +11,8 @@ export function Card({ className = "", id, style, onclick = () => { }, onMousele
 
     return (<div style={style} id={`${id}`} className={`${className} card `} onMouseLeave={() => {
         onMouseleave?.();
-    }} onMouseDown={() => { onclick?.(); }} onClick={(e) => { e.stopPropagation() }} ></div>)
+    }} onMouseDown={() => { onclick?.(); }} onClick={(e) => { e.stopPropagation() }} >
+
+        <label>{id}</label>
+    </div>)
 }
