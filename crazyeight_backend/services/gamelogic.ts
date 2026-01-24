@@ -164,6 +164,25 @@ export function gamelogic() {
                 }
             }
         })
+        socket.on("card_selected",async ({username,data})=>{
+             
+               const roomname: string | null = await getsocketroomname(socket.id);
+                if (roomname === null) {
+                console.log({ ok: false, error: "room dont exist" })
+                return
+            }
+
+               const state:string = await redis.get(`room:${roomname}:state`);
+               const jsondata = JSON.parse(state);
+               const currentturn = jsondata["turn"];
+            
+                  console.log(`room name ${roomname} current turn ${currentturn} : ${username} ${data}`);
+               if(currentturn !== username){
+                return;
+               }
+               console.log("emitting highlight event for card id"+data);
+               io.to(roomname).emit("highlight_card", data);
+        })
 
     })
 

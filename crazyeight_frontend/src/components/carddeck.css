@@ -79,6 +79,14 @@
     rotate(calc(var(--offset)*5deg));
 }
 
+.carddeck_list > .card_mup{
+    transform:
+    translateX(calc(-50% + var(--offset)*10px))
+    rotate(calc(var(--offset)*5deg));
+}
+
+
+
 .carddeck_list > .card_mdown
 {
     transform:

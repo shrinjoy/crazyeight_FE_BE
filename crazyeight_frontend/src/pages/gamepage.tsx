@@ -69,7 +69,7 @@ export function Gamepage() {
             isinitialsetupdone.current = true;
         }
 
-
+        
         
         socket.on("game_start", initgame)
         return () => {
