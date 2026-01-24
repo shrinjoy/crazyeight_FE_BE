@@ -29,6 +29,8 @@ function App() {
     }
     socket.on("playersinlobby", (count: number) => { setLobbycount(count) });
     socket.on("connect", () => {
+
+      
       setConnected(true);
     });
    
@@ -42,7 +44,7 @@ function App() {
       socket.off("disconnect");
       socket.disconnect();
     };
-  }, [connected]);
+  }, []);
 
   return (
     <>

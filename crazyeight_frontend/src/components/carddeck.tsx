@@ -16,10 +16,20 @@ export function Carddeck({ children, className = "", clickable = false, deckisop
     const [highlightcardid, setHighlightedCardId] = useState<string | null>(null);
 
     function mouse_select_event(id?:string) {
-        console.log("card selected"+id);
         const username = localStorage.getItem("username");
+        if(highlightcardid === id){
+            //spawn card
+            console.log("card spawn");
+            socket.emit("card_spawn",{username:username,data:id})
+        }
+        else
+        {
+
+        console.log("card selected"+id);
+       
         socket.emit("card_selected",{username:username,data:id});
         setHighlightedCardId(id || null); 
+        }
     }
 
     const cardarray = React.Children.toArray(children);

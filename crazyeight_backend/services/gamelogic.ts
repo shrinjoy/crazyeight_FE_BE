@@ -164,6 +164,61 @@ export function gamelogic() {
                 }
             }
         })
+
+        socket.on("card_spawn",async({username,data})=>{
+            //move this repeating bs to a single function check for sanity lol this is not worth repeating and this is important for basic auth 
+            //wont be much of "authorative server" without this check would it be now ?
+            const roomname: string | null = await getsocketroomname(socket.id);
+            if (roomname === null) {
+                console.log({ ok: false, error: "room dont exist" })
+                return
+            }
+
+               const state:string = await redis.get(`room:${roomname}:state`);
+               const jsondata = JSON.parse(state);
+               const currentturn = jsondata["turn"];
+                console.log(`room name ${roomname} current turn ${currentturn} : ${username} ${data}`);
+               if(currentturn !== username){
+                return;
+               }    
+               let players = new Set(await redis.smembers(`room:${roomname}:usernames`));
+               //we just delete the current player we will set the remaining player as next owner for the turn cause there can be only 2 players in this game
+               players.delete(username);
+
+
+
+               let discarddeck = new Set(jsondata["discard"]);
+               let currentplayerhand = new Set(jsondata["hands"][username])
+               if(currentplayerhand.has(data))
+               {
+                currentplayerhand.delete(data);
+                jsondata["hands"][username]=[...currentplayerhand];
+                discarddeck.add(data);
+                jsondata["discard"] = [...discarddeck];
+                jsondata["turn"]=[...players][0];
+                 await redis.set(`room:${roomname}:state`, JSON.stringify(jsondata));
+                 console.log(JSON.stringify(await redis.get(`room:${roomname}:state`)))
+                 io.to(roomname).emit("state_update",await redis.get(`room:${roomname}:state`))
+               }
+               else
+               {
+                console.log("illegal move");
+                return;
+               }
+               
+             
+
+                
+               
+
+
+           
+
+              //let players: string[] = await redis.smembers(`room:${roomname}:usernames`);
+
+            
+        })
+
         socket.on("card_selected",async ({username,data})=>{
              
                const roomname: string | null = await getsocketroomname(socket.id);

@@ -30,7 +30,7 @@ export function Gamepage() {
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
 
     const isinitialsetupdone=useRef(false);
-    // const[gamestart,setGamestart] = useState<boolean>(false);
+  
     useEffect(() => {
 
         if (!connected) {
@@ -56,6 +56,7 @@ export function Gamepage() {
                 }
 
             }
+            
             if (statedata["turn"] === username) {
                 setDeckvisible(true);
             }
@@ -69,6 +70,37 @@ export function Gamepage() {
             isinitialsetupdone.current = true;
         }
 
+        socket.on("state_update",(data)=>{
+               const statedata = JSON.parse(data);
+
+             setCardList([]);
+             setoppoCardList([]);
+
+             for (const soc_id in statedata["hands"]) {
+                if (soc_id === username) {
+                    for (const cardname of statedata["hands"][`${username}`]) {
+                        setCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                    }
+                }
+                else {
+                    for (const cardname of statedata["hands"][`${soc_id}`]) {
+                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                    }
+                }
+
+            }
+            for (const soc_id in statedata["hands"]) {
+                  if (statedata["turn"] === username) {
+                setDeckvisible(true);
+            }
+            else
+            {
+                setDeckvisible(false);
+
+            }
+             }
+            console.log(data);
+        })
 
         
         socket.on("game_start", initgame)
