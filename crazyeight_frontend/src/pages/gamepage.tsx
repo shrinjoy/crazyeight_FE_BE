@@ -24,13 +24,11 @@ import { useconnected, useInRoomStatus } from "../App"
 export function Gamepage() {
     const [cardList, setCardList] = useState<JSX.Element[]>([])
     const [cardListOpponent, setoppoCardList] = useState<JSX.Element[]>([])
-
     const connected = useconnected;
     const { setRoomstatus } = useInRoomStatus();
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
-
     const isinitialsetupdone=useRef(false);
-    const [discardcardid,setdiscardcardid] = useState<string>("");
+    const [discardcardid,setdiscardcardid] = useState<string>("NOCARD");
     useEffect(() => {
 
         if (!connected) {
@@ -41,18 +39,20 @@ export function Gamepage() {
         const initgame = (data: string) => {
             if(isinitialsetupdone.current===false){
             const statedata = JSON.parse(data);
+            const discardedcards:string[] = [...statedata["discard"]]
+            setdiscardcardid(discardedcards[discardedcards.length-1]);
             console.log(data);
             console.log("game start");
-
+            
             for (const soc_id in statedata["hands"]) {
                 if (soc_id === username) {
                     for (const cardname of statedata["hands"][`${username}`]) {
-                        setCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                        setCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`${cardname}`}></Card>])
                     }
                 }
                 else {
                     for (const cardname of statedata["hands"][`${soc_id}`]) {
-                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`BK`}></Card>])
                     }
                 }
 
@@ -81,12 +81,12 @@ export function Gamepage() {
              for (const soc_id in statedata["hands"]) {
                 if (soc_id === username) {
                     for (const cardname of statedata["hands"][`${username}`]) {
-                        setCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                        setCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`${cardname}`}></Card>])
                     }
                 }
                 else {
                     for (const cardname of statedata["hands"][`${soc_id}`]) {
-                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`}></Card>])
+                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`BK`}></Card>])
                     }
                 }
 
@@ -98,7 +98,6 @@ export function Gamepage() {
             else
             {
                 setDeckvisible(false);
-
             }
 
              }
@@ -114,7 +113,7 @@ export function Gamepage() {
 
 
     function drawfrompile() {
-         setCardList(prev => [...prev, <Card></Card>])
+         //setCardList(prev => [...prev, <Card></Card>])
     }
     return (
         <>
@@ -124,13 +123,12 @@ export function Gamepage() {
                 <Carddeck clickable={deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
                     {cardList.map(e => e)}
                 </Carddeck>
-                <Card id={discardcardid} onclick={()=>{}} className='discardpile 
+                <Card imgname={discardcardid===undefined?'ET':discardcardid} id={discardcardid===undefined?'ET':discardcardid} onclick={()=>{}} className='discardpile 
                 w-[150px] h-[300px]  
-                
+               
                 md:w-[150px] h-[300px]  
                 lg:w-[150px] h-[300px] 
-                
-                 bg-green-400 '></Card>
+                '></Card>
 
                 <Carddeck clickable={false} deckisopen={!deckvisible} className={`carddeck_pos carddeck_oppo top-10`}>
                     {cardListOpponent.map(e => e)}

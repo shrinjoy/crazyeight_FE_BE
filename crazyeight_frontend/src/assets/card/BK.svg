@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   viewBox="0 0 167.0869141 242.6669922"
+   xml:space="preserve"
+   id="svg2"
+   version="1.1">
+  <metadata id="metadata43">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Card Back</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  
+  <defs id="defs41">
+    <!-- Pattern for the card back -->
+    <pattern id="diagonalPattern" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#1e3a8a" stroke-width="10"/>
+    </pattern>
+    
+    <pattern id="dotsPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="15" r="3" fill="#df0000"/>
+    </pattern>
+  </defs>
+  
+  <g id="Layer_x0020_1" style="fill-rule:nonzero;clip-rule:nonzero;">
+    
+    <!-- Outer decorative border -->
+    <rect
+       x="0"
+       y="0"
+       width="167.0869141"
+       height="242.6669922"
+       rx="20"
+       ry="20"
+       fill="#1e3a8a"
+       stroke="#ffffff"
+       stroke-width="3"
+       id="outerBorder" />
+    
+    <!-- Inner decorative border -->
+    <rect
+       x="10"
+       y="10"
+       width="147.0869141"
+       height="222.6669922"
+       rx="15"
+       ry="15"
+       fill="none"
+       stroke="#df0000"
+       stroke-width="2"
+       stroke-dasharray="8 4"
+       id="innerBorder" />
+    
+    <!-- Background pattern -->
+    <rect
+       x="20"
+       y="20"
+       width="127.0869141"
+       height="202.6669922"
+       rx="12"
+       ry="12"
+       fill="#1e3a8a"
+       id="background" />
+    
+    <!-- Diagonal stripes -->
+    <rect
+       x="20"
+       y="20"
+       width="127.0869141"
+       height="202.6669922"
+       rx="12"
+       ry="12"
+       fill="url(#diagonalPattern)"
+       opacity="0.3"
+       id="stripes" />
+    
+    <!-- Center ornament -->
+    <g id="centerOrnament" transform="translate(83.5434571, 121.333496)">
+      <!-- Outer circle -->
+      <circle cx="0" cy="0" r="45" fill="none" stroke="#df0000" stroke-width="3"/>
+      <circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 3"/>
+      
+      <!-- Inner design - diamond pattern -->
+      <g id="diamondPattern">
+        <path d="M 0,-25 L 15,0 L 0,25 L -15,0 Z" fill="#df0000" opacity="0.8"/>
+        <path d="M 0,-20 L 12,0 L 0,20 L -12,0 Z" fill="#ffffff" opacity="0.9"/>
+        <path d="M 0,-15 L 9,0 L 0,15 L -9,0 Z" fill="#df0000"/>
+      </g>
+      
+      <!-- Corner decorations -->
+      <circle cx="0" cy="-35" r="4" fill="#ffffff"/>
+      <circle cx="35" cy="0" r="4" fill="#ffffff"/>
+      <circle cx="0" cy="35" r="4" fill="#ffffff"/>
+      <circle cx="-35" cy="0" r="4" fill="#ffffff"/>
+      
+      <!-- Diagonal decorations -->
+      <circle cx="25" cy="-25" r="3" fill="#df0000"/>
+      <circle cx="25" cy="25" r="3" fill="#df0000"/>
+      <circle cx="-25" cy="-25" r="3" fill="#df0000"/>
+      <circle cx="-25" cy="25" r="3" fill="#df0000"/>
+    </g>
+    
+    <!-- Corner ornaments -->
+    <g id="topLeftCorner" transform="translate(30, 30)">
+      <circle cx="0" cy="0" r="8" fill="#df0000"/>
+      <circle cx="0" cy="0" r="5" fill="#ffffff"/>
+    </g>
+    
+    <g id="topRightCorner" transform="translate(137.0869141, 30)">
+      <circle cx="0" cy="0" r="8" fill="#df0000"/>
+      <circle cx="0" cy="0" r="5" fill="#ffffff"/>
+    </g>
+    
+    <g id="bottomLeftCorner" transform="translate(30, 212.6669922)">
+      <circle cx="0" cy="0" r="8" fill="#df0000"/>
+      <circle cx="0" cy="0" r="5" fill="#ffffff"/>
+    </g>
+    
+    <g id="bottomRightCorner" transform="translate(137.0869141, 212.6669922)">
+      <circle cx="0" cy="0" r="8" fill="#df0000"/>
+      <circle cx="0" cy="0" r="5" fill="#ffffff"/>
+    </g>
+    
+    <!-- Decorative dots pattern -->
+    <rect
+       x="25"
+       y="25"
+       width="117.0869141"
+       height="192.6669922"
+       rx="10"
+       ry="10"
+       fill="url(#dotsPattern)"
+       opacity="0.15"
+       id="dotsLayer" />
+  </g>
+</svg>
