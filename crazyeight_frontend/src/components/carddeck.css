@@ -1,9 +1,9 @@
 .deck
 {
     width: 100%;
-  
     left: 0;
-    height: 600px;
+    height: 40%;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -12,12 +12,12 @@
 }
 .deck_hidden
 {
-    transform: translateY(93%);
+    transform: translateY(80%);
     transition: transform 0.3s ease-out;
 }
 .deck_show
 {
-    transform: translateY(80%);
+    transform: translateY(60%);
     transition: transform 0.3s ease-out;
 }
 .deck_handle
@@ -38,8 +38,8 @@
     --offset:0;
     width: 90%;
     height: 100%;
-    max-width: 100px;
-    max-height:200px ;
+    max-width: clamp(80px, 12vw, 140px);
+    max-height: clamp(160px, 24vw, 280px);
     border: 0;
     background-color: rgba(0, 223, 149, 0);
     position:absolute;
@@ -71,18 +71,18 @@
 
 .carddeck_list > .card_hidden{
     transform:
-     translateX(calc(-50% + var(--offset)*10px))
+     translateX(calc(-50% + var(--offset)*clamp(8px, 1.5vw, 15px)))
 }
 
 .carddeck_list > .card_show{
     transform:
-    translateX(calc(-50% + var(--offset)*10px))
+    translateX(calc(-50% + var(--offset)*clamp(8px, 1.5vw, 15px)))
     rotate(calc(var(--offset)*5deg));
 }
 
 .carddeck_list > .card_mup{
     transform:
-    translateX(calc(-50% + var(--offset)*10px))
+    translateX(calc(-50% + var(--offset)*clamp(8px, 1.5vw, 15px)))
     rotate(calc(var(--offset)*5deg));
 }
 
@@ -91,8 +91,8 @@
 .carddeck_list > .card_mdown
 {
     transform:
-    translateX(calc(-50% + var(--offset)*20px))
-    translateY(-80px)
+    translateX(calc(-50% + var(--offset)*clamp(15px, 3vw, 30px)))
+    translateY(clamp(-60px, -10vw, -100px))
     rotate(calc(var(--offset) * 0deg));
     z-index: 11;
 }

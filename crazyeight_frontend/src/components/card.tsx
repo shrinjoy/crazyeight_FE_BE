@@ -6,6 +6,7 @@ export interface cardproperties {
     id?: string
     imgname?:string
     style?: React.CSSProperties
+    clickable:boolean
     onclick?: () => void,
     onMouseleave?: () => void
 }
@@ -13,7 +14,7 @@ export interface cardproperties {
 
 
 
-export function Card({ className = "", id,imgname="BK", style, onclick = () => { }, onMouseleave = () => { } }: cardproperties) {
+export function Card({ className = "",clickable=false, id,imgname="BK", style, onclick = () => { }, onMouseleave = () => { } }: cardproperties) {
 
 
     const getcardimage=()=>
@@ -42,8 +43,8 @@ export function Card({ className = "", id,imgname="BK", style, onclick = () => {
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center'
     }} id={`${id}`} className={`${className} card rounded-[20px]`} onMouseLeave={() => {
-        onMouseleave?.();
-    }} onMouseDown={() => { onclick?.(); }} onClick={(e) => { e.stopPropagation() }} >
+       clickable? onMouseleave?.():()=>{};
+    }} onMouseDown={() => {clickable?onclick?.():()=>{}; }} onClick={(e) => { e.stopPropagation() }} >
 
         
     </div>)

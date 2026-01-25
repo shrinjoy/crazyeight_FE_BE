@@ -6,6 +6,7 @@ import "./gamepage.css"
 import "../shared/socket"
 import { socket } from '../shared/socket'
 import { useconnected, useInRoomStatus } from "../App"
+import {Profilepicture} from '../components/profilepicture'
 /*
 {
 "phase":"playing",
@@ -29,50 +30,10 @@ export function Gamepage() {
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
     const isinitialsetupdone=useRef(false);
     const [discardcardid,setdiscardcardid] = useState<string>("NOCARD");
-    useEffect(() => {
-
-        if (!connected) {
-            setRoomstatus(false)
-        }
-        socket.emit("player_joined_room");
-        const username = localStorage.getItem("username");
-        const initgame = (data: string) => {
-            if(isinitialsetupdone.current===false){
-            const statedata = JSON.parse(data);
-            const discardedcards:string[] = [...statedata["discard"]]
-            setdiscardcardid(discardedcards[discardedcards.length-1]);
-            console.log(data);
-            console.log("game start");
-            
-            for (const soc_id in statedata["hands"]) {
-                if (soc_id === username) {
-                    for (const cardname of statedata["hands"][`${username}`]) {
-                        setCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`${cardname}`}></Card>])
-                    }
-                }
-                else {
-                    for (const cardname of statedata["hands"][`${soc_id}`]) {
-                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`BK`}></Card>])
-                    }
-                }
-
-            }
-            
-            if (statedata["turn"] === username) {
-                setDeckvisible(true);
-            }
-            else
-            {
-                setDeckvisible(false);
-
-            }
-        }
-
-            isinitialsetupdone.current = true;
-        }
-
-        socket.on("state_update",(data)=>{
-               const statedata = JSON.parse(data);
+    const updatebord=(data:string)=>
+    {
+          const username = localStorage.getItem("username");
+           const statedata = JSON.parse(data);
                const discardedcards:string[] = [...statedata["discard"]]
                 setdiscardcardid(discardedcards[discardedcards.length-1]);
              setCardList([]);
@@ -81,12 +42,12 @@ export function Gamepage() {
              for (const soc_id in statedata["hands"]) {
                 if (soc_id === username) {
                     for (const cardname of statedata["hands"][`${username}`]) {
-                        setCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`${cardname}`}></Card>])
+                        setCardList(prev => [...prev, <Card clickable={true} id={`${cardname}`} imgname={`${cardname}`}></Card>])
                     }
                 }
                 else {
                     for (const cardname of statedata["hands"][`${soc_id}`]) {
-                       setoppoCardList(prev => [...prev, <Card id={`${cardname}`} imgname={`BK`}></Card>])
+                       setoppoCardList(prev => [...prev, <Card clickable={false} id={`${cardname}`} imgname={`BK`}></Card>])
                     }
                 }
 
@@ -102,12 +63,18 @@ export function Gamepage() {
 
              }
             console.log(data);
-        })
+    }
+    useEffect(() => {
 
-        
-        socket.on("game_start", initgame)
+        if (!connected) {
+            setRoomstatus(false)
+        }
+        socket.emit("player_joined_room");
+        socket.on("state_update",updatebord)
+        socket.on("game_start",updatebord)
         return () => {
-            socket.off("game_start", initgame);
+            socket.off("game_start",updatebord);
+              socket.off("state_update",updatebord);
         }
     }, [connected])
 
@@ -119,17 +86,17 @@ export function Gamepage() {
         <>
 
             <div className='flex flex-col items-center justify-center min-h-screen '>
-                <Card onclick={drawfrompile} className='drawpile'></Card>
-                <Carddeck clickable={deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
+                <Card clickable={false} onclick={drawfrompile} className='drawpile'></Card>
+                <Carddeck clickable={!deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
                     {cardList.map(e => e)}
                 </Carddeck>
-                <Card imgname={discardcardid===undefined?'ET':discardcardid} id={discardcardid===undefined?'ET':discardcardid} onclick={()=>{}} className='discardpile 
+                <Profilepicture highlight={!deckvisible}></Profilepicture>
+                <Card clickable={false} imgname={discardcardid===undefined?'ET':discardcardid} id={discardcardid===undefined?'ET':discardcardid} onclick={()=>{}} className='discardpile 
                 w-[150px] h-[300px]  
-               
                 md:w-[150px] h-[300px]  
                 lg:w-[150px] h-[300px] 
                 '></Card>
-
+                <Profilepicture  highlight={deckvisible}></Profilepicture>
                 <Carddeck clickable={false} deckisopen={!deckvisible} className={`carddeck_pos carddeck_oppo top-10`}>
                     {cardListOpponent.map(e => e)}
                 </Carddeck>
