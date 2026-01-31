@@ -1,64 +1,11 @@
 import { getredis } from "../shared/redis.js";
 import { getsockioserver } from "../shared/socket.js";
 import { type roomstate, type phases, decklist, cardPoints } from "../shared/commontypes.js"
-import { ok } from "node:assert";
-import { stat } from "node:fs";
-import type { Socket } from "socket.io";
-
-
-
-/*
-
-{
-  "phase": "waiting",
-  "turn": "socket_123",
-  "players": ["socket_123","socket_456"],
-  "deck": ["3H","5C","KD"],
-  "discard": ["7S"],
-  "scores": {
-    "socket_123": 0,
-    "socket_456": 0
-  },
-  "hands": {
-    "socket_123": ["3H","5C"],
-    "socket_456": ["KD","7S"]
-  }
-}
-
-
-HSET room:alpha
-  owner "socket_123"
-  createdAt "1705470000000"
-  maxPlayers "2"
-  phase "waiting"
-  game "rummy"
-
-
-SADD room:alpha:players socket_123 socket_456
-SET socket:socket_123:room alpha
-SET socket:socket_456:room alpha
-HSET room:alpha phase playing
-SET room:alpha:state "{\"phase\":\"playing\",\"turn\":\"socket_123\",\"players\":[\"socket_123\",\"socket_456\"],\"deck\":[\"3H\",\"5C\",\"KD\"],\"discard\":[]}"
-room:<id>                 → metadata (hash)
-room:<id>:players         → active sockets (set)
-room:<id>:turn            → whose turn (string)
-room:<id>:deck            → draw pile (list)
-room:<id>:discard         → discard pile (list)
-room:<id>:hand:<socket>   → each player's cards (list)
-socket:<id>:room          → reverse lookup (string)
-
-*/
-
-
-
-
-
-
-
-
 export function gamelogic() {
     const io = getsockioserver();
     const redis = getredis();
+    const roomlock: Map<string, Promise<void>> = new Map();
+
     async function getgamephase(roomid: string): Promise<phases | null> {
         const state = (await redis.hget(`room:${roomid}`, "phase")) as phases | null;
         return state;
@@ -73,12 +20,28 @@ export function gamelogic() {
     }
 
     function shuffle<T>(array: T[]): T[] {
-        const result = [...array]; // 
+        const result = [...array]; 
         for (let i = result.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [result[i], result[j]] = [result[j], result[i]];
         }
         return result;
+    }
+
+    async function getroomlock<T>(roomname: string, fn: () => Promise<T>): Promise<T> {
+        while (roomlock.has(roomname)) {
+            await roomlock.get(roomname);
+        }
+
+        let resolve: () => void;
+        const lock = new Promise<void>((r) => (resolve = r));
+        roomlock.set(roomname, lock);
+        try {
+            return await fn();
+        } finally {
+            roomlock.delete(roomname);
+            resolve!();
+        }
     }
     io.on("connection", async (socket) => {
 
@@ -163,15 +126,22 @@ export function gamelogic() {
 
                 }
                 if (state === "done") {
+                    let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
+                    if (gamestatuscheck === false) {
+                        //do nothing game is not over yet 
 
+                    }
+                    else {
+                        setgamephase(roomname, "done");
+                        socket.emit("game_status", gamestatuscheck)
+                    }
                     socket.leave(roomname);
                 }
             }
         })
         async function isgameover(roomname): Promise<false | { winner: string }> {
             //there are 2 rules in crazy eight 
-            //1 is if one players hand is empty they win 
-            //2 is when any players hands reach 100 we will compare points of hand of each player who ever has least point will win 
+            // if one players hand is empty they win 
             //we could have used the cached data sure but its better to avoid stale data for this check even tho i guess its not that stale but better be sure than not
             const state = await redis.get(`room:${roomname}:state`);
             if (!state) return false;
@@ -187,31 +157,34 @@ export function gamelogic() {
             const p2Hand: string[] = jsondata.hands[p2] ?? [];
             if (p1Hand.length === 0) return { winner: p1 };
             if (p2Hand.length === 0) return { winner: p2 };
-            for (const card of p1Hand) {
-                p1Points += cardPoints[card] ?? 0;
+            let deck: Set<string> = new Set(jsondata["deck"]);
+            if (deck.size < 1) {
+                for (const card of p1Hand) {
+                    p1Points += cardPoints[card] ?? 0;
+                }
+                for (const card of p2Hand) {
+                    p2Points += cardPoints[card] ?? 0;
+                }
+                console.log(`point of p1 so far ${p1Points} and p2 ${[p2Points]}`);
+                
+                    return {
+                        winner: p1Points < p2Points ? p1 : p2
+                    };
+                
             }
-            for (const card of p2Hand) {
-                p2Points += cardPoints[card] ?? 0;
-            }
-            console.log(`point of p1 so far ${p1Points} and p2 ${[p2Points]}`);
-            if (p1Points >= 100 || p2Points >= 100) {
-                return {
-                    winner: p1Points < p2Points ? p1 : p2
-                };
-            }
+
+
             return false;
         }
-
-
-            socket.on("card_spawn", async ({ username, data }) => {
-                //move this repeating bs to a single function check for sanity lol this is not worth repeating and this is important for basic auth 
-                //wont be much of "authorative server" without this check would it be now ?
-                const roomname: string | null = await getsocketroomname(socket.id);
-                if (roomname === null) {
-                    console.log({ ok: false, error: "room dont exist" })
-                    return
-                }
-
+        socket.on("card_spawn", async ({ username, data }) => {
+            
+            //wont be much of "authorative server" without this check would it be now ?
+            const roomname: string | null = await getsocketroomname(socket.id);
+            if (roomname === null) {
+                console.log({ ok: false, error: "room dont exist" })
+                return
+            }
+            await getroomlock((roomname), async () => {
                 const state: string = await redis.get(`room:${roomname}:state`);
                 const jsondata: object = JSON.parse(state);
                 const currentturn: string = jsondata["turn"];
@@ -222,9 +195,6 @@ export function gamelogic() {
                 let players: Set<string> = new Set(await redis.smembers(`room:${roomname}:usernames`));
                 //we just delete the current player we will set the remaining player as next owner for the turn cause there can be only 2 players in this game
                 players.delete(username);
-
-
-
                 let discarddeck: Set<string> = new Set(jsondata["discard"]);
                 let currentplayerhand: Set<string> = new Set(jsondata["hands"][username])
                 if (currentplayerhand.has(data)) {
@@ -282,15 +252,13 @@ export function gamelogic() {
                     io.to(roomname).emit("state_update", await redis.get(`room:${roomname}:state`))
                     //we will run game win state check here after all states on user side done updating
 
-                    let gamestatuscheck:false|{winner:string} = await isgameover(roomname);
-                    if(gamestatuscheck === false)
-                    {
+                    let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
+                    if (gamestatuscheck === false) {
                         //do nothing game is not over yet 
-                        
+
                     }
-                    else
-                    {
-                        setgamephase(roomname,"done");
+                    else {
+                        setgamephase(roomname, "done");
                         io.to(roomname).emit("game_end", gamestatuscheck)
                     }
 
@@ -300,26 +268,19 @@ export function gamelogic() {
                     console.log("illegal move");
                     return;
                 }
+            });
+           
 
 
-
-
-
-
-
-
-
-                //let players: string[] = await redis.smembers(`room:${roomname}:usernames`);
-
-
-            })
-            socket.on("draw_a_card", async ({ username }) => {
-                console.log("draw a card");
-                const roomname: string | null = await getsocketroomname(socket.id);
-                if (roomname === null) {
-                    console.log({ ok: false, error: "room dont exist" })
-                    return
-                }
+        })
+        socket.on("draw_a_card", async ({ username }) => {
+            console.log("draw a card");
+            const roomname: string | null = await getsocketroomname(socket.id);
+            if (roomname === null) {
+                console.log({ ok: false, error: "room dont exist" })
+                return
+            }
+            await getroomlock((roomname), async () => {
                 const state: string = await redis.get(`room:${roomname}:state`);
                 const jsondata: object = JSON.parse(state);
                 const currentturn: string = jsondata["turn"];
@@ -331,57 +292,108 @@ export function gamelogic() {
                 players.delete(username);
 
 
-                let deck: Set<string> = new Set(jsondata["deck"]);
-                if (deck.size > 0) {
-                    let currentplayerhand: Set<string> = new Set(jsondata["hands"][username])
-                    let cardtoadd = [...deck][deck.size - 1];
-                    currentplayerhand.add(cardtoadd);
-                    deck.delete(cardtoadd);
-                    jsondata["hands"][username] = [...currentplayerhand];
-                    jsondata["turn"] = [...players][0];
-                    jsondata["deck"] = [...deck];
-                    await redis.set(`room:${roomname}:state`, JSON.stringify(jsondata));
-                    io.to(roomname).emit("state_update", await redis.get(`room:${roomname}:state`))
-                    let gamestatuscheck:false|{winner:string} = await isgameover(roomname);
-                    if(gamestatuscheck === false)
-                    {
-                        //do nothing game is not over yet 
-                        
+                //we get the discard pile so that we can make sure any card has been played at all or not otherwise its not valid to let anyone draw a card
+                let discarddeck: Set<string> = new Set(jsondata["discard"]);
+                let currentplayerhand: Set<string> = new Set(jsondata["hands"][username])
+                // we shouldnt allow draw  if there was no card played to begin with 
+
+                if (discarddeck.size > 0) {
+                    let topcardofdiscardpile: string = [...discarddeck][discarddeck.size - 1];
+                    let topcardnumber: string = "";
+                    let topcardalphabet: string = "";
+                    if (topcardofdiscardpile.length === 2) {
+                        topcardnumber = topcardofdiscardpile[0];
+                        topcardalphabet = topcardofdiscardpile[1];
                     }
-                    else
-                    {
-                        setgamephase(roomname,"done");
-                        io.to(roomname).emit("game_status", gamestatuscheck)
+                    else if (topcardofdiscardpile.length === 3) {
+                        topcardnumber = topcardofdiscardpile[0] + topcardofdiscardpile[1];
+                        topcardalphabet = topcardofdiscardpile[2];
+                    }
+                    for (const card of currentplayerhand) {
+                        let handcardnumber: string = "";
+                        let handcardalphabet: string = "";
+                        if (card.length === 2) {
+                            handcardnumber = card[0];
+                            handcardalphabet = card[1];
+                        }
+                        else if (card.length === 3) {
+                            handcardnumber = card[0] + card[1];
+                            handcardalphabet = card[2];
+                        }
+                        if (handcardnumber === "8" || handcardnumber === topcardnumber || handcardalphabet === topcardalphabet) {
+                            console.log("illegal move");
+                            return;
+                        }
+                    }
+
+
+
+                    let deck: Set<string> = new Set(jsondata["deck"]);
+                    if (deck.size > 0) {
+                        let currentplayerhand: Set<string> = new Set(jsondata["hands"][username])
+                        let cardtoadd = [...deck][deck.size - 1];
+                        currentplayerhand.add(cardtoadd);
+                        deck.delete(cardtoadd);
+                        jsondata["hands"][username] = [...currentplayerhand];
+                        jsondata["turn"] = [...players][0];
+                        jsondata["deck"] = [...deck];
+                        await redis.set(`room:${roomname}:state`, JSON.stringify(jsondata));
+                        io.to(roomname).emit("state_update", await redis.get(`room:${roomname}:state`))
+                        //RIP DRY
+                        let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
+                        if (gamestatuscheck === false) {
+                            //do nothing game is not over yet 
+
+                        }
+                        else {
+                            setgamephase(roomname, "done");
+                            io.to(roomname).emit("game_status", gamestatuscheck)
+                        }
+                    }
+                    else {
+                        console.log("illegal move");
+                        let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
+                        if (gamestatuscheck === false) {
+                            //do nothing game is not over yet 
+
+                        }
+                        else {
+                            setgamephase(roomname, "done");
+                            io.to(roomname).emit("game_status", gamestatuscheck)
+                        }
+                        return;
                     }
                 }
                 else {
                     console.log("illelgal move");
                     return;
                 }
-
+                
             })
+            
+        })
 
-            socket.on("card_selected", async ({ username, data }) => {
+        socket.on("card_selected", async ({ username, data }) => {
 
-                const roomname: string | null = await getsocketroomname(socket.id);
-                if (roomname === null) {
-                    console.log({ ok: false, error: "room dont exist" })
-                    return
-                }
+            const roomname: string | null = await getsocketroomname(socket.id);
+            if (roomname === null) {
+                console.log({ ok: false, error: "room dont exist" })
+                return
+            }
 
-                const state: string = await redis.get(`room:${roomname}:state`);
-                const jsondata = JSON.parse(state);
-                const currentturn = jsondata["turn"];
+            const state: string = await redis.get(`room:${roomname}:state`);
+            const jsondata = JSON.parse(state);
+            const currentturn = jsondata["turn"];
 
 
-                if (currentturn !== username) {
-                    return;
-                }
+            if (currentturn !== username) {
+                return;
+            }
 
-                io.to(roomname).emit("highlight_card", data);
-            })
+            io.to(roomname).emit("highlight_card", data);
+        })
 
-        
+
     })
 
 }
