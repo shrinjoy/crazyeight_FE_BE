@@ -30,6 +30,9 @@ export function Gamepage() {
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
     const isinitialsetupdone=useRef(false);
     const [discardcardid,setdiscardcardid] = useState<string>("NOCARD");
+    const [isgamedone,setGamedone] = useState<boolean>(false);
+    const [iswinner,setWinner] = useState<boolean>(false);
+
     const updatebord=(data:string)=>
     {
           const username = localStorage.getItem("username");
@@ -72,21 +75,45 @@ export function Gamepage() {
         socket.emit("player_joined_room");
         socket.on("state_update",updatebord)
         socket.on("game_start",updatebord)
+        const gameend = (data:{winner:string})=>
+        {
+                setGamedone(true);
+
+            const username = localStorage.getItem("username");
+
+             if(username === data.winner)
+            {
+                setWinner(true);
+                alert("you won ");
+            }
+            else
+            {
+                setWinner(false);
+                alert("you lost ");
+
+            }
+        }
+        socket.on("game_end",gameend)
         return () => {
             socket.off("game_start",updatebord);
               socket.off("state_update",updatebord);
+              socket.off("game_end",gameend);
         }
     }, [connected])
 
 
     function drawfrompile() {
+       
+        const username = localStorage.getItem("username");
+         socket.emit("draw_a_card",{username});
+         console.log("called draw a card")
          //setCardList(prev => [...prev, <Card></Card>])
     }
     return (
         <>
 
             <div className='flex flex-col items-center justify-center min-h-screen '>
-                <Card clickable={false} onclick={drawfrompile} className='drawpile'></Card>
+                <Card clickable={true} onclick={drawfrompile} className='drawpile z-2000'></Card>
                 <Carddeck clickable={!deckvisible} deckisopen={deckvisible} className='carddeck_pos '>
                     {cardList.map(e => e)}
                 </Carddeck>
