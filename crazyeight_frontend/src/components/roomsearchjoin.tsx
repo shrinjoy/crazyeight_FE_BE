@@ -125,18 +125,21 @@ export function Roomsearchjoin({ visible }: props) {
     overflow-y-auto
     border-t border-black
     mt-4
+    flex
+    flex-col
   ">
         {roomlist.map((room) => (
-          <li className="
+          <button onClick={()=>{joincreateroom(room.name)}} className="
         flex-1 min-w-0
         px-4 py-3.5
         text-base
         outline-none
         text-black
         placeholder:text-gray-500
+        shadow-[2px_2px_0_0_#000]
       " key={room.name}>
             {room.name} — {room.playercount}
-          </li>
+          </button>
         ))}
       </ul>
     </div>
