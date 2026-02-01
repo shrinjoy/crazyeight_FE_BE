@@ -1,6 +1,7 @@
 import { getredis } from "../shared/redis.js";
 import { getsockioserver } from "../shared/socket.js";
 import { type roomstate, type phases, decklist, cardPoints } from "../shared/commontypes.js"
+import { pipeline } from "node:stream";
 export function gamelogic() {
     const io = getsockioserver();
     const redis = getredis();
@@ -8,10 +9,34 @@ export function gamelogic() {
 
     async function getgamephase(roomid: string): Promise<phases | null> {
         const state = (await redis.hget(`room:${roomid}`, "phase")) as phases | null;
+
+        
         return state;
     }
     async function setgamephase(roomid: string, phase: phases) {
+        
+        if(phase==="done")
+        {
+       
+        const players = await redis.smembers(`room:${roomid}:players`);
+        const pipeline = redis.pipeline();
+        pipeline.srem("rooms", roomid);
+        pipeline.del(`room:${roomid}`);
+        pipeline.del(`room:${roomid}:players`);
+        pipeline.del(`room:${roomid}:usernames`);
+        pipeline.del(`room:${roomid}:state`);
+        pipeline.del(`room:${roomid}:deck:started`);
+        players.forEach(playerSocketId => {
+            pipeline.del(`socket:${playerSocketId}:room`);
+        });
+         return await pipeline.exec();
+
+        }
+        else{
         return await redis.hset(`room:${roomid}`, "phase", phase);
+        }
+    
+    
     }
 
 
@@ -48,6 +73,19 @@ export function gamelogic() {
         socket.on("get_game_phase", async ({ roomid }, ack) => {
             const state = await getgamephase(roomid);
             ack({ ok: true, phase: state })
+        })
+          socket.on("game_disconnect",async()=>{
+           
+            const roomname: string | null = await redis.get(`socket:${socket.id}:room`);
+            console.log(`trying to remove  player from room ${roomname}`);
+            if (roomname !== null) {
+                await redis.srem(`room:${roomname}:players`, socket.id);
+                console.log(`removed player from room ${roomname}`);
+
+            }
+            socket.leave(roomname);
+             const count = await redis.get("active:lobby:players");
+            io.emit("playersinlobby", Math.max(Number(count), 0));
         })
         socket.on("player_joined_room", async () => {
             const roomname: string | null = await getsocketroomname(socket.id);
@@ -166,13 +204,13 @@ export function gamelogic() {
                     p2Points += cardPoints[card] ?? 0;
                 }
                 console.log(`point of p1 so far ${p1Points} and p2 ${[p2Points]}`);
+                    
                 
                     return {
                         winner: p1Points < p2Points ? p1 : p2
                     };
                 
             }
-
 
             return false;
         }

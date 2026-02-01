@@ -117,6 +117,7 @@ export async function roomservice() {
             ack({ ok: true, "roomid": roomid });
             socket.broadcast.emit("room_added", { playercount: 1, name: roomid });
         })
+      
         socket.on("get_rooms", async (_, ack) => {
 
             try {
@@ -187,7 +188,7 @@ export async function roomservice() {
 
             ack?.({ ok: true, playercount: count });
         });
-
+     
         socket.on("disconnecting", async (reason) => {
 
             const roomname: string | null = await redis.get(`socket:${socket.id}:room`);
