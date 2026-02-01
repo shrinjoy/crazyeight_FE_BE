@@ -2,7 +2,7 @@
 
 ##  Overview
 This is a real-time multiplayer Crazy Eight card game server built with Socket.IO and Redis. The game follows classic Crazy Eight rules for exactly 2 players per room, featuring real-time gameplay, card validation, scoring, and room management.
-## Stack**.
+## Stack.
 Node.js with TypeScript
 Socket.IO with Redis Adapter
 ioredis - Redis client for Node.js
@@ -104,3 +104,6 @@ Docker - for container
 
 ### **Game Locks**
 - `room:{roomid}:deck:started` - Lock for game initialization
+
+
+--i used ai for the readme (deepseek)

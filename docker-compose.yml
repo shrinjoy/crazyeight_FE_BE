@@ -1,0 +1,50 @@
+
+services:
+  # Redis Service
+  redis:
+    image: redis
+    container_name: crazyeight_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --bind 0.0.0.0 --protected-mode no
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+
+  backend:
+    build:
+      context: ./crazyeight_backend
+      dockerfile: Dockerfile
+    container_name: crazyeight_be
+    ports:
+      - "3000:3000"
+      - "3001:3001"  
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis  
+      - REDIS_PORT=6379
+    volumes:
+      - ./:/app           
+      - /app/node_modules 
+      - /app/dist         
+    depends_on:
+      redis:
+        condition: service_healthy  
+    networks:
+      - app-network
+    command: npm run dev  
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
