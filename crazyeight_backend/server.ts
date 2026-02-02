@@ -11,3 +11,4 @@ initsocketio(httpserver);
 roomservice();
 gamelogic();
 httpserver.listen(Number(process.env.port),"0.0.0.0",() => {console.log("backend server is running ")});
+//to test locally do docker run -p 0.0.0.0:3000:3000 --name backend backend

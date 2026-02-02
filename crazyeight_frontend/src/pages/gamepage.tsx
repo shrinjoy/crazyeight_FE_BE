@@ -44,7 +44,7 @@ export function Gamepage() {
             }
 
         }
-        for (const soc_id in statedata["hands"]) {
+       
             if (statedata["turn"] === username) {
                 setDeckvisible(true);
             }
@@ -52,7 +52,7 @@ export function Gamepage() {
                 setDeckvisible(false);
             }
 
-        }
+        
         console.log(data);
     }
     useEffect(() => {

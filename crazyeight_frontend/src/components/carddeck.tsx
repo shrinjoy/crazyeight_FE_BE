@@ -11,7 +11,7 @@ interface carddeckproperties {
     deckisopen?: boolean
 }
 
-export function Carddeck({ children, className = "", clickable = false, deckisopen = false }: carddeckproperties) {
+export function Carddeck({ children, className = "", deckisopen = false }: carddeckproperties) {
 
     const [highlightcardid, setHighlightedCardId] = useState<string | null>(null);
 

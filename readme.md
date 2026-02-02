@@ -9,7 +9,15 @@ ioredis - Redis client for Node.js
 Express  - HTTP server
 React - for frontend
 Docker - for container 
-
+## ENV
+create one .env in backend with following 
+port=3000
+redis_url=''
+redis_port=
+redis_username=''
+redis_password=''
+and  create one .env in frontend with following 
+VITE_SOCKET_URL=http://localhost:3000
 ### **Incoming Events (Client → Server)**
 
 | Event | Parameters | Description | Acknowledgment |

@@ -1,7 +1,6 @@
 import "../fonts.css"
 import { useState, type ReactNode } from "react"
 import { Roomsearchjoin } from "../components/roomsearchjoin"
-import {useconnected } from "../App"
 interface props  {
 children?:ReactNode
 playercount:number|0
@@ -10,8 +9,7 @@ playercount:number|0
 export function Landingpage({children,playercount}:props)
 {
     const [roomsearchvisible,setRoomsearchvisiblity] = useState(false)
-    const connected = useconnected();
-  
+    
     
 
 
