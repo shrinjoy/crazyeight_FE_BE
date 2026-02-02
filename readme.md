@@ -1,3 +1,5 @@
+# live link https://crazyeight-fe-be.vercel.app/
+
 #  Socket.IO Game Server - Event Documentation
 
 ##  Overview
@@ -11,7 +13,7 @@ React - for frontend
 Docker - for container 
 ## ENV
 # create one .env in backend with following 
-- port=3000
+- PORT=3000
 - redis_url=''
 - redis_port=
 - redis_username=''
