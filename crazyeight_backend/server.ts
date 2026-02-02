@@ -1,15 +1,33 @@
-import express from "express"
-import dotenv from 'dotenv'
-import { createServer } from "http"
+import express from "express";
+import dotenv from "dotenv";
+import { createServer } from "http";
+
 if (process.env.NODE_ENV !== "production") {
   await dotenv.config();
 }
+
 import { initsocketio } from "./shared/socket.js";
 import { roomservice } from "./services/room.js";
 import { gamelogic } from "./services/gamelogic.js";
+
 const app = express();
-const httpserver = createServer();
+
+app.get("/health", (_req, res) => {
+  res.status(200).send("ok");
+});
+
+
+const httpserver = createServer(app);
+
+
 initsocketio(httpserver);
 roomservice();
 gamelogic();
-httpserver.listen(Number(process.env.PORT),"0.0.0.0",() => {console.log("backend server is running ")});
+
+httpserver.listen(
+  Number(process.env.PORT),
+  "0.0.0.0",
+  () => {
+    console.log("backend server is running");
+  }
+);

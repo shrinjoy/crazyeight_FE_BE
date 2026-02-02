@@ -8,8 +8,7 @@
   "main": "server.ts",
   "scripts": {
     "build": "tsc --outDir dist",
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev server.ts"
+    "start": "node dist/server.js"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
