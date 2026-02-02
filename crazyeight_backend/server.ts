@@ -1,7 +1,7 @@
 import express from "express"
-import dotenv from 'dotenv'
+//import dotenv from 'dotenv'
 import { createServer } from "http"
-dotenv.config({ path: './.env' })
+//dotenv.config({ path: './.env' })
 import { initsocketio } from "./shared/socket.js";
 import { roomservice } from "./services/room.js";
 import { gamelogic } from "./services/gamelogic.js";
