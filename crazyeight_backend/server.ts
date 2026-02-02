@@ -1,7 +1,9 @@
 import express from "express"
-//import dotenv from 'dotenv'
+import dotenv from 'dotenv'
 import { createServer } from "http"
-//dotenv.config({ path: './.env' })
+if (process.env.NODE_ENV !== "production") {
+  await dotenv.config();
+}
 import { initsocketio } from "./shared/socket.js";
 import { roomservice } from "./services/room.js";
 import { gamelogic } from "./services/gamelogic.js";
@@ -11,4 +13,3 @@ initsocketio(httpserver);
 roomservice();
 gamelogic();
 httpserver.listen(Number(process.env.port),"0.0.0.0",() => {console.log("backend server is running ")});
-//to test locally do docker run -p 0.0.0.0:3000:3000 --name backend backend
