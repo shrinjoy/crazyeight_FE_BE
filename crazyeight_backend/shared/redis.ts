@@ -3,10 +3,17 @@ import { error } from "node:console";
 let redis: Redis | null = null;
 export  function initredis():Redis{
     if (redis) return redis;
+    console.log(`host: ${String(process.env.redis_url)},
+        port: ${Number(process.env.redis_port)},
+        username:${String(process.env.redis_username)},
+        password:${String(process.env.redis_password)},
+        maxRetriesPerRequest: null,
+        enableReadyCheck: true`)
     redis =new Redis({
-        host: "0.0.0.0",
-        port: 6379,
-        password:"12345",
+        host: String(process.env.redis_url),
+        port: Number(process.env.redis_port),
+        username:String(process.env.redis_username),
+        password:String(process.env.redis_password),
         maxRetriesPerRequest: null,
         enableReadyCheck: true
     })

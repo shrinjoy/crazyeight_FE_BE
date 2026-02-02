@@ -203,8 +203,7 @@ export function gamelogic() {
                 for (const card of p2Hand) {
                     p2Points += cardPoints[card] ?? 0;
                 }
-                console.log(`point of p1 so far ${p1Points} and p2 ${[p2Points]}`);
-                    
+            
                 
                     return {
                         winner: p1Points < p2Points ? p1 : p2
@@ -228,6 +227,7 @@ export function gamelogic() {
                 const currentturn: string = jsondata["turn"];
                 console.log(`room name ${roomname} current turn ${currentturn} : ${username} ${data}`);
                 if (currentturn !== username) {
+                    socket.emit("error_message",{message:"not your turn"});
                     return;
                 }
                 let players: Set<string> = new Set(await redis.smembers(`room:${roomname}:usernames`));
@@ -268,7 +268,8 @@ export function gamelogic() {
                                 //legal move
                             }
                             else {
-                                console.log("illegal move");
+                                             socket.emit("error_message",{message:"select some different card or draw a card"});
+
                                 return;
                             }
 
@@ -288,8 +289,6 @@ export function gamelogic() {
                     console.log(JSON.stringify(await redis.get(`room:${roomname}:state`)))
 
                     io.to(roomname).emit("state_update", await redis.get(`room:${roomname}:state`))
-                    //we will run game win state check here after all states on user side done updating
-
                     let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
                     if (gamestatuscheck === false) {
                         //do nothing game is not over yet 
@@ -299,11 +298,9 @@ export function gamelogic() {
                         setgamephase(roomname, "done");
                         io.to(roomname).emit("game_end", gamestatuscheck)
                     }
-
-
                 }
                 else {
-                    console.log("illegal move");
+                    socket.emit("error_message",{message:"not allowed"});
                     return;
                 }
             });
@@ -312,7 +309,7 @@ export function gamelogic() {
 
         })
         socket.on("draw_a_card", async ({ username }) => {
-            console.log("draw a card");
+            
             const roomname: string | null = await getsocketroomname(socket.id);
             if (roomname === null) {
                 console.log({ ok: false, error: "room dont exist" })
@@ -359,7 +356,8 @@ export function gamelogic() {
                             handcardalphabet = card[2];
                         }
                         if (handcardnumber === "8" || handcardnumber === topcardnumber || handcardalphabet === topcardalphabet) {
-                            console.log("illegal move");
+                                          socket.emit("error_message",{message:"cant draw got valid move"});
+
                             return;
                         }
                     }
@@ -389,7 +387,8 @@ export function gamelogic() {
                         }
                     }
                     else {
-                        console.log("illegal move");
+                                       socket.emit("error_message",{message:"not allowed"});
+
                         let gamestatuscheck: false | { winner: string } = await isgameover(roomname);
                         if (gamestatuscheck === false) {
                             //do nothing game is not over yet 
@@ -403,7 +402,8 @@ export function gamelogic() {
                     }
                 }
                 else {
-                    console.log("illelgal move");
+                  socket.emit("error_message",{message:"not allowed"});
+
                     return;
                 }
                 
@@ -425,6 +425,7 @@ export function gamelogic() {
 
 
             if (currentturn !== username) {
+              
                 return;
             }
 

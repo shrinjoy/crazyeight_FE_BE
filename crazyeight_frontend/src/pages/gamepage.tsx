@@ -1,35 +1,24 @@
 
 import { Card } from '../components/card'
 import { Carddeck } from '../components/carddeck'
-import { useEffect, useRef, useState, type JSX } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import "./gamepage.css"
 import "../shared/socket"
 import { socket } from '../shared/socket'
-import { useconnected, useInRoomStatus } from "../App"
+import { useconnected, useInRoomStatus} from "../App"
 import { Profilepicture } from '../components/profilepicture'
 import { Winlosspage } from '../components/winlosspage'
-/*
-{
-"phase":"playing",
-"turn":"vDWZgnlICRaDOHM1AAAV",
-"players":["vDWZgnlICRaDOHM1AAAV","pTEN1GtN3LUqd-PEAAAT"],
-"deck":["AH","3H","5H","7H","8H","10H","JH","AD","2D","4D","5D","6D","9D","JD","QD","KD","AS","2S","3S","4S","5S","6S","7S","8S","10S","QS","KS","2C","3C","4C","5C","6C","7C","9C","10C","JC","QC","KC"],
-"discard":[],
-"hands":
-{
-"vDWZgnlICRaDOHM1AAAV":["8D","4H","6H","8C","7D","QH","JS"],
-"pTEN1GtN3LUqd-PEAAAT":["9H","2H","3D","KH","AC","9S","10D"]
-}
-}
 
-*/
+import 'reactjs-popup/dist/index.css';
+import { ToastContainer, toast } from 'react-toastify';
+
 export function Gamepage() {
     const [cardList, setCardList] = useState<JSX.Element[]>([])
     const [cardListOpponent, setoppoCardList] = useState<JSX.Element[]>([])
     const connected = useconnected;
     const { setRoomstatus } = useInRoomStatus();
     const [deckvisible, setDeckvisible] = useState<boolean>(true)
-    const isinitialsetupdone = useRef(false);
+    
     const [discardcardid, setdiscardcardid] = useState<string>("NOCARD");
     const [isgamedone, setGamedone] = useState<boolean>(false);
     const [iswinner, setWinner] = useState<boolean>(false);
@@ -89,6 +78,10 @@ export function Gamepage() {
 
             }
         }
+        socket.on("error_message",(data)=>{
+            toast.dismiss()
+            toast(`${data.message}`, { autoClose: 1500 });
+        })
         socket.on("game_end", gameend)
         return () => {
             socket.off("game_start", updatebord);
@@ -100,6 +93,7 @@ export function Gamepage() {
 
     function drawfrompile() {
 
+        
         const username = localStorage.getItem("username");
         socket.emit("draw_a_card", { username });
         console.log("called draw a card")
@@ -109,6 +103,7 @@ export function Gamepage() {
         <>
 
             <div className='flex flex-col items-center justify-center min-h-screen '>
+                 <ToastContainer autoClose={1500} />
                 <button onClick={() => {
                     socket.emit("game_disconnect")
                     setRoomstatus(false);

@@ -4,6 +4,7 @@ import { Background } from './components/background'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { socket } from './shared/socket'
 import { Gamepage } from './pages/gamepage'
+
 const connectedcontext = createContext(false)
 export const useconnected = () => useContext(connectedcontext);
 
