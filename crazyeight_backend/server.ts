@@ -12,4 +12,4 @@ const httpserver = createServer();
 initsocketio(httpserver);
 roomservice();
 gamelogic();
-httpserver.listen(Number(process.env.port),"0.0.0.0",() => {console.log("backend server is running ")});
+httpserver.listen(Number(process.env.PORT),"0.0.0.0",() => {console.log("backend server is running ")});
