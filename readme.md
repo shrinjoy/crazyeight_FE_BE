@@ -1,119 +1,30 @@
 # live link https://crazyeight-fe-be.vercel.app/
 
-#  Socket.IO Game Server - Event Documentation
+# what this is ?
+- this is a class crazy eight card game implimentation you can learn more about the game here (https://bicyclecards.com/how-to-play/crazy-eights) many say UNO is inspired by this game
+- i made this game to learn more about how distrubuted systems work i used redis as the single source of truth for the game state and socket.io and nodejs as the backend for game logic
 
-##  Overview
-This is a real-time multiplayer Crazy Eight card game server built with Socket.IO and Redis. The game follows classic Crazy Eight rules for exactly 2 players per room, featuring real-time gameplay, card validation, scoring, and room management.
-## Stack.
-Node.js with TypeScript
-Socket.IO with Redis Adapter
-ioredis - Redis client for Node.js
-Express  - HTTP server
-React - for frontend
-Docker - for container 
-## ENV
-# create one .env in backend with following 
-- PORT=3000
-- redis_url=''
-- redis_port=
-- redis_username=''
-- redis_password=''
-# and  create one .env in frontend with following 
-- VITE_SOCKET_URL=http://localhost:3000
-### **Incoming Events (Client → Server)**
+# stack
+- Redis with Redis Adapter(i used redis because well its is very fast and cheap and easy to deploy,ofc sql lite  would have worked fine but it would just have increased the complexity since we dont need relational database for game state and we need to update it quite frequently ,plus key value databases are preffered over relational databases because we are not performing complex queries on the data in database itself but rather on backend so each operation is cheaper than doing it in database itself)
+- nodejs  (nodejs is lightweight and pretty fast compared to java spring or c# net which would have been a total overkill for this project its just a simple card game under the hood and it is very IO heavy so i went with nodejs since it is one of the most logical choice and for why not go lang ? because i dont need to increase complexity even tho go has better tooling for this i was able to develope this whole game in single language(typescript))
+- socketio (i went with socket io instead of raw websockets because first of all we dont need raw extreme speed here we need safety pre handled and along with reconnect and fallback polling to http which would otherwise had increased the devlopement time by a lot, if the game was real time as in 1000s of inputs between 2 players in same room at the same time web socket would have worked great since we would wana avoid bloat coming with socketio)
+- reactjs with vite (i used react cause it seemed like the most logical choice to build componenet based ui and most important reason is react is state based system with stateless componenets which is perfect for a card game since i can just set states and update them and rerender whatever i need to when they change which increases the performance )
+<video src="https://youtu.be/BjLlIcESG3g" controls muted></video>
+# features
+- complete crazy eight gameplay 
+- real time multiplayer 
+- multiple game rooms 
+- player turn management
+- card Validation
+- player reconnect
+- win loss logic
+- dockerized so you can run docker compose up and you can play it yourself
 
-| Event | Parameters | Description | Acknowledgment |
-|-------|------------|-------------|----------------|
-| `create_room` | `{ roomid: string, username: string }` | Create or join a room |  Returns `{ ok: boolean, roomid?: string, error?: string }` |
-| `get_rooms` | None | Get list of all available rooms | Returns `{ ok: boolean, rooms: Array<{name: string, playercount: number}> }` |
-| `get_total_player_count` | None | Get total players across all rooms |  Returns `{ ok: boolean, totalplayers?: number, error?: string }` |
-| `get_playersinlobby` | None | Get count of players in lobby |  Returns `{ ok: boolean, playercount: number }` |
-
-### **Outgoing Events (Server → Client)**
-
-| Event | Data | Description | Target |
-|-------|------|-------------|--------|
-| `room_added` | `{ playercount: number, name: string }` | Broadcast when a player joins/creates a room | All clients except sender |
-| `playersinlobby` | `number` | Update lobby player count | All connected clients |
-
-### **Internal Socket.IO Events**
-- `disconnecting` - Triggered when socket is about to disconnect
-- `disconnect` - Triggered when socket disconnects
-
-##  Game Logic Service Events
-
-### **Incoming Events (Client → Server)**
-
-| Event | Parameters | Description | Acknowledgment |
-|-------|------------|-------------|----------------|
-| `get_game_phase` | `{ roomid: string }` | Get current game phase of a room |  Returns `{ ok: boolean, phase: phases }` |
-| `game_disconnect` | None | Player disconnects from game |  No acknowledgment |
-| `player_joined_room` | None | Player joins room (triggers game start) |  No acknowledgment |
-| `card_spawn` | `{ username: string, data: string }` | Player plays a card |  No acknowledgment |
-| `draw_a_card` | `{ username: string }` | Player draws a card from deck | No acknowledgment |
-| `card_selected` | `{ username: string, data: string }` | Player selects a card (for highlighting) |  No acknowledgment |
-
-### **Outgoing Events (Server → Client)**
-
-| Event | Data | Description | Target |
-|-------|------|-------------|--------|
-| `game_start` | `string` (JSON state) | Start or resume game with current state | Room members or specific client |
-| `game_end` | `{ winner: string }` | Game ended with winner information | All room members |
-| `game_status` | `{ winner: string }` | Game status update (rarely used) | Room members |
-| `state_update` | `string` (JSON state) | Update game state after move | All room members |
-| `highlight_card` | `string` (card data) | Highlight selected card for opponents | All room members except sender |
-| `playersinlobby` | `number` | Update lobby player count | All connected clients |
-
-
-
-
-
-
-##  Event Categories
-
-### **Room Management**
-- `create_room`, `get_rooms`, `get_total_player_count`
-- Used for creating, joining, and listing rooms
-
-### **Game State Management**
-- `get_game_phase`, `player_joined_room`, `game_start`, `state_update`
-- Handle game initialization and state synchronization
-
-### **Player Actions**
-- `card_spawn`, `draw_a_card`, `card_selected`
-- Player moves and interactions during gameplay
-
-### **Status & Monitoring**
-- `get_playersinlobby`, `playersinlobby`, `game_status`
-- Real-time status updates and monitoring
-
-### **Connection Management**
-- `game_disconnect`, `disconnecting`, `disconnect`
-- Handle player connections and disconnections
-
-##  Important Notes
-
-1. **Room Capacity**: Maximum 2 players per room
-2. **Game Phases**: `waiting` → `playing` → `done`
-3. **Locking Mechanism**: Redis locks prevent race conditions during game setup
-4. **State Synchronization**: All game state is stored in Redis and broadcast on changes
-5. **Acknowledgment**: Some events expect callback responses, others are fire-and-forget
-
-##  Redis Keys Used
-
-### **Room Management**
-- `rooms` - Set of all room IDs
-- `room:{roomid}` - Room metadata hash
-- `room:{roomid}:players` - Set of player socket IDs
-- `room:{roomid}:usernames` - Set of usernames
-- `room:{roomid}:state` - Game state JSON
-
-### **Socket Mapping**
-- `socket:{socketid}:room` - Room ID for each socket
-- `active:lobby:players` - Lobby player count
-
-### **Game Locks**
-- `room:{roomid}:deck:started` - Lock for game initialization
-
-
---i used ai for the readme (deepseek)
+  
+# todo
+- polish the ui
+- generate documentation
+- clean up the code
+- add ai player support
+- room deletation when players quit mid game
+- timer for automatic round end
