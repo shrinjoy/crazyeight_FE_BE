@@ -1,7 +1,7 @@
 # live link https://crazyeight-fe-be.vercel.app/
 
 # what this is ?
-- this is a class crazy eight card game implimentation you can learn more about the game here (https://bicyclecards.com/how-to-play/crazy-eights) many say UNO is inspired by this game
+- this is a classic crazy eight card game implimentation you can learn more about the game here (https://bicyclecards.com/how-to-play/crazy-eights) many say UNO is inspired by this game
 - i made this game to learn more about how distrubuted systems work i used redis as the single source of truth for the game state and socket.io and nodejs as the backend for game logic
 
 # stack
