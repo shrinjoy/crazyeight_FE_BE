@@ -1,4 +1,4 @@
-# live link https://crazyeight-fe-be.vercel.app/
+
 
 # what this is ?
 - this is a classic crazy eight card game implimentation you can learn more about the game here (https://bicyclecards.com/how-to-play/crazy-eights) many say UNO is inspired by this game
